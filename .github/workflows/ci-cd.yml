@@ -103,7 +103,7 @@ jobs:
             # Deploy
             export IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             export IMAGE_TAG=$IMAGE_TAG
-            docker-compose up -d
+            docker compose up -d
 
             sleep 15
 
