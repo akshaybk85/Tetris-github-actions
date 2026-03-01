@@ -1,0 +1,12 @@
+
+
+services:
+
+  tetris:
+    image: ${IMAGE}
+    container_name:  tetris
+    restart: unless-stoped
+    ports:
+      - "80:80"
+    labels:
+      - "image.tag=${IMAGE_TAG}"
