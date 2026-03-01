@@ -19,7 +19,7 @@ spec:
         - name: tetrics
           image: 811545553615.dkr.ecr.ap-south-1.amazonaws.com/tetris:latest
           ports:
-           - containers: 80
+           - containerPort: 80
           resources:
             request:
               memory: "64Mi"
