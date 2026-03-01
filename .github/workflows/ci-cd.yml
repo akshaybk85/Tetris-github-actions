@@ -78,10 +78,12 @@ jobs:
           envs:        ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,AWS_REGION
           script: |
             # Clone repo if first time, otherwise pull latest
-            if [ ! -d "/home/ubuntu/tetris/.git" ]; then
-              git clone git@github.com:akshaybk85/Tetris-github-actions.git /home/ubuntu/tetris
+              if [ ! -d "/home/ubuntu/tetris/.git" ]; then
+              GIT_SSH_COMMAND='ssh -i ~/.ssh/deploy_key_tetris' \
+                git clone git@github.com:akshaybk85/Tetris-github-actions.git /home/ubuntu/tetris
             else
-              cd /home/ubuntu/tetris && git pull origin main
+              cd /home/ubuntu/tetris
+              GIT_SSH_COMMAND='ssh -i ~/.ssh/deploy_key_tetris' git pull origin main
             fi
 
             cd /home/ubuntu/tetris
