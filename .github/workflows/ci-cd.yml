@@ -77,26 +77,37 @@ jobs:
           key:         ${{ secrets.EC2_SSH_KEY }}
           envs:        ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,AWS_REGION
           script: |
-            cd /home/ubuntu/tetris
-            GIT_SSH_COMMAND='ssh -i ~/.ssh/deploy_key' git pull origin main
+            # Clone repo if first time, otherwise pull latest
+            if [ ! -d "/home/ubuntu/tetris/.git" ]; then
+              git clone git@github.com:akshaybk85/Tetris-github-actions.git /home/ubuntu/tetris
+            else
+              cd /home/ubuntu/tetris && git pull origin main
+            fi
 
+            cd /home/ubuntu/tetris
+
+            # Login to ECR
             aws ecr get-login-password --region $AWS_REGION | \
               docker login --username AWS --password-stdin $ECR_REGISTRY
 
+            # Pull new image
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+            # Store previous tag for rollback
             PREVIOUS_TAG=$(docker inspect tetris \
               --format='{{index .Config.Labels "image.tag"}}' 2>/dev/null)
             if [ -z "$PREVIOUS_TAG" ]; then
               PREVIOUS_TAG=$IMAGE_TAG
             fi
 
+            # Deploy
             export IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             export IMAGE_TAG=$IMAGE_TAG
-            docker-compose up -d
+            docker compose up -d
 
             sleep 15
 
+            # Health check
             HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80)
 
             if [ "$HTTP_STATUS" == "200" ]; then
@@ -106,7 +117,7 @@ jobs:
               echo "Rolling back..."
               export IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$PREVIOUS_TAG
               export IMAGE_TAG=$PREVIOUS_TAG
-              docker-compose up -d
+              docker compose up -d
               exit 1
             fi
 
